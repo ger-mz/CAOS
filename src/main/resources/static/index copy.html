@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAOS - Gestión de Proveedores y Facturación</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --sidebar-bg: #1e293b;
+            --card-bg: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border-color: #334155;
+            --input-bg: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-bottom: 3rem;
+            padding: 0 0.5rem;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(99, 102, 241, 0.1);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            position: relative;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        /* Cards and Tables */
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 1rem;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th {
+            text-align: left;
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9375rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: #fbbf24;
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 1rem;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            outline: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Section Visibility */
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Actions */
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .action-btn:hover {
+            color: var(--accent-color);
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(200%);
+            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            z-index: 2000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i data-lucide="shield-check"></i>
+            <span>CAOS System</span>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li>
+                    <a class="nav-item active" data-target="solicitudes">
+                        <i data-lucide="file-text"></i>
+                        <span>Solicitudes</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" data-target="proveedores">
+                        <i data-lucide="users"></i>
+                        <span>Proveedores</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="nav-item" data-target="productos">
+                        <i data-lucide="package"></i>
+                        <span>Productos</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Solicitudes Section -->
+        <section id="solicitudes" class="page-section active">
+            <header>
+                <h1>Solicitudes</h1>
+                <button class="btn btn-primary" onclick="openModal('modal-solicitud')">
+                    <i data-lucide="shopping-cart"></i> Nueva Solicitud
+                </button>
+            </header>
+            <div class="card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Proveedor</th>
+                                <th>Producto</th>
+                                <th>Unidades</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-solicitudes">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Proveedores Section -->
+        <section id="proveedores" class="page-section">
+            <header>
+                <h1>Proveedores</h1>
+                <button class="btn btn-primary" onclick="openModal('modal-proveedor')">
+                    <i data-lucide="plus"></i> Nuevo Proveedor
+                </button>
+            </header>
+            <div class="card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Razón Social</th>
+                                <th>RFC</th>
+                                <th>Email</th>
+                                <th>Celular</th>
+                                <th>CP</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-proveedores">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Productos Section -->
+        <section id="productos" class="page-section">
+            <header>
+                <h1>Productos</h1>
+                <button class="btn btn-primary" onclick="openModal('modal-producto')">
+                    <i data-lucide="plus"></i> Nuevo Producto
+                </button>
+            </header>
+            <div class="card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Precio</th>
+                                <th>Moneda</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-productos">
+                            <!-- Data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Proveedor -->
+    <div id="modal-proveedor" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nuevo Proveedor</h2>
+                <button class="action-btn" onclick="closeModal('modal-proveedor')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-proveedor">
+                <div class="form-group">
+                    <label>Razón Social</label>
+                    <input type="text" name="razonSocial" required>
+                </div>
+                <div class="form-group">
+                    <label>RFC</label>
+                    <input type="text" name="rfc" required maxlength="13">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Celular</label>
+                    <input type="text" name="celular">
+                </div>
+                <div class="form-group">
+                    <label>Código Postal</label>
+                    <input type="text" name="codigoPostal" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>Régimen Fiscal</label>
+                    <input type="text" name="regimenFiscal">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('modal-proveedor')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Producto -->
+    <div id="modal-producto" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nuevo Producto</h2>
+                <button class="action-btn" onclick="closeModal('modal-producto')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-producto">
+                <div class="form-group">
+                    <label>Nombre</label>
+                    <input type="text" name="nombre" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea name="descripcion" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Precio</label>
+                    <input type="number" name="precio" required>
+                </div>
+                <div class="form-group">
+                    <label>Moneda</label>
+                    <select name="moneda" required>
+                        <option value="MXN">MXN</option>
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('modal-producto')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Solicitud -->
+    <div id="modal-solicitud" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Nueva Solicitud</h2>
+                <button class="action-btn" onclick="closeModal('modal-solicitud')"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-solicitud">
+                <div class="form-group">
+                    <label>Proveedor</label>
+                    <select name="proveedor_id" id="select-proveedor" required>
+                        <option value="">Seleccione un proveedor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Producto solicitado</label>
+                    <select name="producto_id" id="select-producto" required>
+                        <option value="">Seleccione un producto</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Número de Unidades</label>
+                    <input type="number" name="numeroUnidades" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Estado Inicial</label>
+                    <select name="state" required disabled>
+                        <option value="CREADO">CREADO</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('modal-solicitud')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Crear Solicitud</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Detalle Solicitud -->
+    <div id="modal-detalle-solicitud" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Detalles de la Solicitud</h2>
+                <button class="action-btn" onclick="closeModal('modal-detalle-solicitud')"><i
+                        data-lucide="x"></i></button>
+            </div>
+            <div id="detalle-solicitud-content">
+                <!-- Content will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                    onclick="closeModal('modal-detalle-solicitud')">Cerrar</button>
+                <button type="button" id="btn-avanzar-estado" class="btn btn-primary">Avanzar Estado</button>
+            </div>
+        </div>
+    </div>
+    <i id="toast-icon"></i>
+    <span id="toast-message"></span>
+    </div>
+
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        // State Management
+        const API_BASE = '/v1';
+        let dataStore = {
+            proveedores: [],
+            productos: [],
+            solicitudes: []
+        };
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const target = item.getAttribute('data-target');
+
+                // Update nav
+                document.querySelectorAll('.nav-item').forEach(ni => ni.classList.remove('active'));
+                item.classList.add('active');
+
+                // Update sections
+                document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active'));
+                document.getElementById(target).classList.add('active');
+
+                // Refresh data if needed
+                loadData();
+            });
+        });
+
+        // Modal Logic
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+            if (id === 'modal-solicitud') {
+                populateSelects();
+            }
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // Fetch Data
+        async function loadData() {
+            try {
+                const [provRes, prodRes, solRes] = await Promise.all([
+                    fetch(`${API_BASE}/proveedores`).then(r => r.json()),
+                    fetch(`${API_BASE}/productos`).then(r => r.json()),
+                    fetch(`${API_BASE}/solicitudes`).then(r => r.json())
+                ]);
+
+                dataStore.proveedores = provRes || [];
+                dataStore.productos = prodRes || [];
+                dataStore.solicitudes = solRes || [];
+
+                renderAll();
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                showToast('Error al conectar con el servidor', 'danger');
+            }
+        }
+
+        function renderAll() {
+            renderProveedores();
+            renderProductos();
+            renderSolicitudes();
+        }
+
+        function renderProveedores() {
+            const tbody = document.getElementById('table-proveedores');
+            tbody.innerHTML = dataStore.proveedores.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td style="font-weight: 500;">${p.razonSocial}</td>
+                    <td><code>${p.rfc}</code></td>
+                    <td>${p.email}</td>
+                    <td>${p.celular || '-'}</td>
+                    <td>${p.codigoPostal || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProductos() {
+            const tbody = document.getElementById('table-productos');
+            tbody.innerHTML = dataStore.productos.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td style="font-weight: 500;">${p.nombre}</td>
+                    <td style="color: var(--text-secondary);">${p.descripcion || '-'}</td>
+                    <td>${p.precio}</td>
+                    <td><span class="badge badge-info">${p.moneda}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderSolicitudes() {
+            const tbody = document.getElementById('table-solicitudes');
+            if (!tbody) return;
+            tbody.innerHTML = dataStore.solicitudes.map(s => `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>${s.proveedor?.razonSocial || 'N/A'}</td>
+                    <td>${s.productoSolicitado?.nombre || 'N/A'}</td>
+                    <td>${s.numeroUnidades}</td>
+                    <td><span class="badge ${getStatusClass(s.state)}">${s.state}</span></td>
+                    <td>
+                        <button class="action-btn" onclick="verDetallesSolicitud(${s.id})" title="Ver Detalles / Avanzar">
+                            <i data-lucide="eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function getStatusClass(state) {
+            switch (state) {
+                case 'CREADO': return 'badge-info';
+                case 'FINALIZADO': return 'badge-success';
+                case 'EN_ESPERA': case 'REVISION': case 'PAGO': return 'badge-warning';
+                case 'DEVOLUCION': case 'CANCELACION': return 'badge-danger';
+                default: return '';
+            }
+        }
+
+        function populateSelects() {
+            const provSelect = document.getElementById('select-proveedor');
+            const prodSelect = document.getElementById('select-producto');
+
+            provSelect.innerHTML = '<option value="">Seleccione un proveedor</option>' +
+                dataStore.proveedores.map(p => `<option value="${p.id}">${p.razonSocial}</option>`).join('');
+
+            prodSelect.innerHTML = '<option value="">Seleccione un producto</option>' +
+                dataStore.productos.map(p => `<option value="${p.id}">${p.nombre}</option>`).join('');
+        }
+
+        // Form Handlers
+        document.getElementById('form-proveedor').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const res = await fetch(`${API_BASE}/proveedor`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    showToast('Proveedor guardado con éxito', 'success');
+                    closeModal('modal-proveedor');
+                    loadData();
+                    e.target.reset();
+                } else if (res.status === 400) {
+                    const body = await res.json();
+                    if (body.error) alert(body.error);
+                    else showToast('Datos de proveedor inválidos', 'danger');
+                } else {
+                    showToast('Error al guardar proveedor', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de red al guardar proveedor', 'danger');
+            }
+        };
+
+        document.getElementById('form-producto').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            data.precio = parseFloat(data.precio);
+
+            try {
+                const res = await fetch(`${API_BASE}/producto`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    showToast('Producto guardado con éxito', 'success');
+                    closeModal('modal-producto');
+                    loadData();
+                    e.target.reset();
+                } else if (res.status === 400) {
+                    const body = await res.json();
+                    if (body.error) alert(body.error);
+                    else showToast('Datos de producto inválidos', 'danger');
+                } else {
+                    showToast('Error al guardar producto', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de red al guardar producto', 'danger');
+            }
+        };
+
+        document.getElementById('form-solicitud').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const payload = {
+                proveedor: { id: parseInt(formData.get('proveedor_id')) },
+                productoSolicitado: { id: parseInt(formData.get('producto_id')) },
+                numeroUnidades: parseInt(formData.get('numeroUnidades')),
+                state: 'CREADO'
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/solicitud`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    showToast('Solicitud creada con éxito', 'success');
+                    closeModal('modal-solicitud');
+                    loadData();
+                    e.target.reset();
+                } else if (res.status === 400) {
+                    const body = await res.json();
+                    if (body.error) alert(body.error);
+                    else showToast('Error en los datos enviados', 'danger');
+                } else {
+                    showToast('Error al crear solicitud', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de red al crear solicitud', 'danger');
+            }
+        };
+
+        async function verDetallesSolicitud(id) {
+            const solicitud = dataStore.solicitudes.find(s => s.id === id);
+            if (!solicitud) return;
+
+            const content = document.getElementById('detalle-solicitud-content');
+            content.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label>ID de Solicitud</label>
+                        <div style="font-weight: 600;">#${solicitud.id}</div>
+                    </div>
+                    <div>
+                        <label>Estado Actual</label>
+                        <div><span class="badge ${getStatusClass(solicitud.state)}">${solicitud.state}</span></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label>Proveedor</label>
+                            <div style="font-weight: 500;">${solicitud.proveedor?.razonSocial || 'N/A'}</div>
+                        </div>
+                        <div>
+                            <label>RFC</label>
+                            <div style="font-family: monospace;">${solicitud.proveedor?.rfc || 'N/A'}</div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; border: 1px solid var(--border-color);">
+                        <label style="margin-bottom: 0.5rem; display: block;">Producto Solicitado</label>
+                        <div style="font-weight: 600; font-size: 1.1rem; color: var(--accent-color);">${solicitud.productoSolicitado?.nombre || 'N/A'}</div>
+                        <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">${solicitud.productoSolicitado?.descripcion || '-'}</div>
+                        <div style="margin-top: 0.75rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span>Cantidad: <strong>${solicitud.numeroUnidades}</strong></span>
+                            <span>Precio Unit: <strong>$${solicitud.productoSolicitado?.precio || 0} ${solicitud.productoSolicitado?.moneda || ''}</strong></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const btnAvanzar = document.getElementById('btn-avanzar-estado');
+            btnAvanzar.onclick = () => avanzarSolicitud(id);
+
+            // Re-show button if it was hidden
+            btnAvanzar.style.display = 'inline-flex';
+
+            const footer = btnAvanzar.parentElement;
+            const extraButtons = footer.querySelectorAll('button:not(.btn-secondary):not(#btn-avanzar-estado)');
+            extraButtons.forEach(b => b.remove());
+
+            // Dynamic Button Logic based on current state
+            switch (solicitud.state) {
+                case 'CREADO':
+                    btnAvanzar.innerHTML = '<i data-lucide="play"></i> Iniciar Solicitud';
+                    break;
+                case 'EN_ESPERA':
+                    btnAvanzar.innerHTML = '<i data-lucide="package-check"></i> Paquete Recibido';
+                    btnAvanzar.onclick = () => confirmarRecepcion(id);
+                    break;
+                case 'REVISION':
+                    btnAvanzar.style.display = 'none';
+                    const btnGood = document.createElement('button');
+                    btnGood.className = 'btn btn-primary';
+                    btnGood.innerHTML = '<i data-lucide="check"></i> Buen Estado';
+                    btnGood.onclick = () => confirmarEstadoPaquete(id, true);
+                    footer.appendChild(btnGood);
+                    const btnBad = document.createElement('button');
+                    btnBad.className = 'btn';
+                    btnBad.style.backgroundColor = 'var(--danger)';
+                    btnBad.style.color = 'white';
+                    btnBad.innerHTML = '<i data-lucide="thumbs-down"></i> Mal Estado';
+                    btnBad.onclick = () => confirmarEstadoPaquete(id, false);
+                    footer.appendChild(btnBad);
+                    break;
+                case 'PAGO':
+                    btnAvanzar.style.display = 'none';
+                    const btnPay = document.createElement('button');
+                    btnPay.className = 'btn btn-primary';
+                    btnPay.innerHTML = '<i data-lucide="credit-card"></i> Confirmar Pago';
+                    btnPay.onclick = () => confirmarPago(id, true);
+                    footer.appendChild(btnPay);
+                    const btnNoPay = document.createElement('button');
+                    btnNoPay.className = 'btn';
+                    btnNoPay.style.backgroundColor = 'var(--danger)';
+                    btnNoPay.style.color = 'white';
+                    btnNoPay.innerHTML = '<i data-lucide="x-circle"></i> Rechazar Pago';
+                    btnNoPay.onclick = () => confirmarPago(id, false);
+                    footer.appendChild(btnNoPay);
+                    break;
+                case 'FINALIZADO':
+                case 'CANCELACION':
+                case 'DEVOLUCION':
+                    btnAvanzar.style.display = 'none';
+                    break;
+                default:
+                    btnAvanzar.innerHTML = '<i data-lucide="arrow-right"></i> Avanzar Estado';
+            }
+
+            openModal('modal-detalle-solicitud');
+            lucide.createIcons();
+        }
+
+        async function confirmarRecepcion(id) {
+            try {
+                const solicitud = dataStore.solicitudes.find(s => s.id === id);
+                if (!solicitud) return;
+
+                // Create a clean copy for the PUT request
+                const payload = { ...solicitud, paqueteRecibido: true };
+
+                const res = await fetch(`${API_BASE}/solicitud`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    // Once marked as received, advance the status
+                    await avanzarSolicitud(id);
+                } else {
+                    const body = await res.json().catch(() => ({}));
+                    if (body.error) alert(body.error);
+                    else showToast('Error al confirmar recepción', 'danger');
+                }
+            } catch (err) {
+                console.error('Error en confirmarRecepcion:', err);
+                showToast('Error de red al confirmar recepción', 'danger');
+            }
+        }
+
+        async function confirmarEstadoPaquete(id, esBuenEstado) {
+            try {
+                const solicitud = dataStore.solicitudes.find(s => s.id === id);
+                if (!solicitud) return;
+                const payload = { ...solicitud, paqueteEnBuenEstado: esBuenEstado };
+                const res = await fetch(`${API_BASE}/solicitud`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) await avanzarSolicitud(id);
+                else {
+                    const body = await res.json().catch(() => ({}));
+                    if (body.error) alert(body.error);
+                    else showToast('Error al actualizar revisión', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de red al actualizar revisión', 'danger');
+            }
+        }
+
+        async function confirmarPago(id, pagado) {
+            try {
+                const solicitud = dataStore.solicitudes.find(s => s.id === id);
+                if (!solicitud) return;
+                const payload = { ...solicitud, pagado: pagado };
+                const res = await fetch(`${API_BASE}/solicitud`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) await avanzarSolicitud(id);
+                else {
+                    const body = await res.json().catch(() => ({}));
+                    if (body.error) alert(body.error);
+                    else showToast('Error al actualizar pago', 'danger');
+                }
+            } catch (err) {
+                showToast('Error de red al actualizar pago', 'danger');
+            }
+        }
+
+        async function avanzarSolicitud(id) {
+            try {
+                const res = await fetch(`${API_BASE}/solicitudes/avanzar-solicitud?id=${id}`);
+
+                if (res.ok) {
+                    showToast('Estado de solicitud actualizado', 'success');
+                    closeModal('modal-detalle-solicitud');
+                    loadData();
+                    return;
+                }
+
+                // Si no es OK, manejamos errores
+                const isJson = res.headers.get('content-type')?.includes('application/json');
+                const body = isJson ? await res.json().catch(() => null) : null;
+
+                if (res.status === 400) {
+                    if (body && body.error) alert(body.error);
+                    else showToast('Error al avanzar estado', 'danger');
+                } else {
+                    showToast('Error al procesar la solicitud', 'danger');
+                }
+            } catch (err) {
+                // Si hay un error de red pero el proceso avanzó según el usuario,
+                // simplemente actualizamos la tabla sin alarmar con un mensaje rojo.
+                console.warn('Advertencia en avance (posible cierre de conexión silencioso):', err);
+                loadData();
+            }
+        }
+
+        // Toast Helper
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msg = document.getElementById('toast-message');
+
+            msg.textContent = message;
+            toast.className = 'toast show';
+
+            if (type === 'success') {
+                icon.setAttribute('data-lucide', 'check-circle');
+                icon.style.color = 'var(--success)';
+            } else {
+                icon.setAttribute('data-lucide', 'alert-circle');
+                icon.style.color = 'var(--danger)';
+            }
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Initial load
+        loadData();
+    </script>
+</body>
+
+</html>
