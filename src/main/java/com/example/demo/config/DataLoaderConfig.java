@@ -20,7 +20,7 @@ import java.util.List;
 public class DataLoaderConfig {
     @Bean
     CommandLineRunner initDatabase(ProveedorRepository proveedorRepository,
-                                   MaquinaEstadosRepository solicitudRepository) {
+            MaquinaEstadosRepository solicitudRepository) {
         return args -> {
 
             // 1. Verificar si ya existen datos para no duplicar al reiniciar
@@ -85,6 +85,55 @@ public class DataLoaderConfig {
                 solicitud2.setPaqueteRecibido(false);
 
                 solicitudRepository.save(solicitud2);
+
+                EstadoSolicitud solicitud3 = new EstadoSolicitud();
+                solicitud3.setState(StatusStateEnum.CREADO);
+                solicitud3.setFechaSolicitud(new Date());
+                solicitud3.setNumeroUnidades(2L);
+                solicitud3.setProveedor(proveedorGuardado);
+                solicitud3.setProductoSolicitado(proveedorGuardado.getCatalogo().get(0));
+                solicitud3.setPaqueteRecibido(false);
+                solicitudRepository.save(solicitud3);
+
+                EstadoSolicitud solicitud4 = new EstadoSolicitud();
+                solicitud4.setState(StatusStateEnum.CREADO);
+                solicitud4.setFechaSolicitud(new Date());
+                solicitud4.setNumeroUnidades(20L);
+                solicitud4.setProveedor(proveedorGuardado);
+                solicitud4.setProductoSolicitado(proveedorGuardado.getCatalogo().get(1));
+                solicitud4.setPaqueteRecibido(false);
+                solicitudRepository.save(solicitud4);
+
+                // --- CREAR SEGUNDO PROVEEDOR ---
+                Proveedor proveedor2 = new Proveedor();
+                proveedor2.setRazonSocial("Global Supplies International");
+                proveedor2.setRfc("GSIN001231PZ1");
+                proveedor2.setCodigoPostal("01000");
+                proveedor2.setRegimenFiscal("601");
+                proveedor2.setEmail("ventas@globalsupplies.com");
+                proveedor2.setCelular("5587654321");
+
+                Producto p3 = new Producto();
+                p3.setNombre("Monitor 4K 27\"");
+                p3.setDescripcion("Panel IPS, 144Hz");
+                p3.setPrecio(8500L);
+                p3.setMoneda(MonedaProdutoEnum.MXN);
+
+                List<Producto> catalogo2 = new ArrayList<>();
+                catalogo2.add(p3);
+                proveedor2.setCatalogo(catalogo2);
+
+                Proveedor proveedor2Guardado = proveedorRepository.save(proveedor2);
+
+                // Nueva solicitud para el segundo proveedor
+                EstadoSolicitud solicitud5 = new EstadoSolicitud();
+                solicitud5.setState(StatusStateEnum.CREADO);
+                solicitud5.setFechaSolicitud(new Date());
+                solicitud5.setNumeroUnidades(3L);
+                solicitud5.setProveedor(proveedor2Guardado);
+                solicitud5.setProductoSolicitado(proveedor2Guardado.getCatalogo().get(0));
+                solicitud5.setPaqueteRecibido(false);
+                solicitudRepository.save(solicitud5);
 
                 System.out.println("Datos precargados exitosamente.");
             } else {
